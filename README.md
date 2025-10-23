@@ -1,2 +1,4 @@
 # RepoSpace-IDE
-An IDE with integrated repo browsing built by a dev for developers
+An IDE with integrated repo browsing built by a dev for developers!
+
+NOTE: DOWNLOAD THE MONACO EDITOR CODE AND MOVE THE VENDOR FILE TO THE /SRC FOLDER FOR THE DITOR TO FUNCTION PROPERLY
