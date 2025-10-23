@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoSpace IDE - AI-Powered Development Environment</title>
+
+    <!-- Load Monaco Editor -->
+    <script src="vendor/vs/loader.js"></script>
+
+    <!-- Load XTerm.js -->
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css">
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <link rel="stylesheet" href="styles.css">
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📦 Script loading check:');
+        console.log('- typeof Terminal:', typeof Terminal);
+        console.log('- typeof window.Terminal:', typeof window.Terminal);
+        console.log('- All globals:', Object.keys(window).filter(k => k.toLowerCase().includes('term')));
+        console.log('- Script elements:', document.querySelectorAll('script[src*="xterm"]'));
+    });
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-section">
+            <h1 class="logo">RepoSpace IDE</h1>
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
+
+        <div class="auth-section">
+            <button class="btn btn-secondary" id="recentFilesBtn">📄 Recent Files</button>
+            <button class="btn btn-primary" id="loginBtn">Sign in with GitHub</button>
+            <button class="btn btn-secondary" onclick="window.repoSpaceIDE.showDownloadLocation()">📁 Downloads</button>
+            
+            <span class="user-info" id="userInfo" style="display: none;"></span>
+        </div>
+    </header>
+
+    <!-- Main IDE Layout -->
+    <main class="ide-container">
+        <!-- Left Column - Repository Search & Extensions -->
+        <aside class="left-panel">
+            <!-- Repository Search Section -->
+            <section class="repo-search-section">
+                <h3 class="panel-title">🔍 Repository Search</h3>
+                <div class="search-container">
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="repoSearchInput"
+                        placeholder="Search repositories..."
+                    >
+                    <button class="search-btn" id="repoSearchBtn">
+                        <span class="search-icon">🔍</span>
+                    </button>
+                </div>
+
+                <!-- Search Results -->
+                <div class="repo-results" id="repoResults">
+                    <div class="placeholder-content">
+                        <p>🚀 Start searching to discover repositories</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- File Explorer Section -->
+            <section class="file-explorer-section">
+                <h3 class="panel-title">📁 Project Files</h3>
+                <div class="file-tree" id="fileTree">
+                    <div class="placeholder-content">
+                        <p>📂 Open a project to see files</p>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Right Column - Editor & Terminal -->
+        <div class="right-panel">
+            <!-- Terminal/Console - TOP position -->
+            <section class="terminal-section">
+                <div class="terminal-header">
+                    <h3 class="panel-title">💻 Terminal</h3>
+                    <div class="terminal-controls">
+                        <button class="btn btn-small" id="clearTerminalBtn">Clear</button>
+                        <button class="btn btn-small" id="toggleTerminalBtn">−</button>
+                    </div>
+                </div>
+                <div class="terminal-container" id="terminalContainer">
+                    <div class="terminal-placeholder">
+                        <p>$ Ready for commands...</p>
+                        <p>💡 Terminal integration coming soon</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Code Editor - BOTTOM position -->
+            <section class="editor-section">
+                <div class="editor-header">
+                    <div class="tab-bar" id="tabBar">
+                        <div class="tab active" data-file="welcome.md">
+                            <span class="tab-name">Welcome</span>
+                            <button class="tab-close">×</button>
+                        </div>
+                    </div>
+                    <div class="editor-controls">
+                        <button class="btn btn-small" id="saveBtn">💾 Save</button>
+                        <button class="btn btn-small" id="formatBtn">✨ Format</button>
+                    </div>
+                </div>
+                <div class="editor-container" id="editorContainer">
+                    <!-- Monaco Editor mount -->
+                    <div class="editor-placeholder">
+                        <h2>Welcome to RepoSpace IDE! 🚀</h2>
+                        <p>Your AI-powered development environment</p>
+                        <br>
+                        <h3>Features:</h3>
+                        <ul>
+                            <li>🔍 Intelligent repository discovery</li>
+                            <li>🤖 AI development assistant</li>
+                            <li>📝 Advanced code editing</li>
+                            <li>💻 Integrated terminal</li>
+                            <li>🎨 Beautiful, customizable interface</li>
+                        </ul>
+                        <br>
+                        <p><strong>Monaco Editor will replace this placeholder soon!</strong></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Recent Files Modal  -->
+    <div class="modal" id="recentFilesModal" style="display: none;">
+        <div class="modal-content recent-files-modal">
+            <div class="modal-header">
+                <h2>📂 Recent Files & Projects</h2>
+                <button class="btn-close" onclick="window.repoSpaceIDE.closeRecentFiles()">×</button>
+            </div>
+
+            <!-- Recent Projects Section -->
+            <div class="recent-section">
+                <div class="recent-section-header">
+                    <h3>Recent Projects</h3>
+                    <button class="btn btn-small" onclick="window.repoSpaceIDE.clearRecentProjects()">Clear</button>
+                </div>
+                <div class="recent-projects-list" id="recentProjectsList">
+                    <div class="empty-state">
+                        <p>📁 No recent projects</p>
+                        <p class="hint">Open a folder to get started</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Files Section -->
+            <div class="recent-section">
+                <div class="recent-section-header">
+                    <h3>Recent Files</h3>
+                    <button class="btn btn-small" onclick="window.repoSpaceIDE.clearRecentFiles()">Clear</button>
+                </div>
+                <div class="recent-files-list" id="recentFilesList">
+                    <div class="empty-state">
+                        <p>📄 No recent files</p>
+                        <p class="hint">Open and edit files to see them here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="window.repoSpaceIDE.openProjectFolder()">
+                    📂 Open Folder
+                </button>
+                <button class="btn btn-secondary" onclick="window.repoSpaceIDE.closeRecentFiles()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OAuth Device Flow Modal -->
+    <div class="modal" id="oauthModal" style="display: none;">
+        <div class="modal-content oauth-modal">
+            <div class="oauth-header">
+                <h2>🔐 Sign in with GitHub</h2>
+            </div>
+            <div class="oauth-body">
+                <p>To authenticate, enter this code on GitHub:</p>
+                <div class="user-code-display" id="userCodeDisplay">
+                    <span class="user-code">----</span>
+                </div>
+                <p class="oauth-instruction">
+                    A browser window will open. Paste the code above when prompted.
+                </p>
+                <div class="oauth-status" id="oauthStatus">
+                    <span class="spinner">⏳</span>
+                    <span>Waiting for authorization...</span>
+                </div>
+            </div>
+            <div class="oauth-footer">
+                <button class="btn btn-secondary" id="cancelOAuthBtn">Cancel</button>
+                <button class="btn btn-primary" id="copyCodeBtn">
+                    📋 Copy Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- AI Assistant Panel (Future) -->
+    <div class="ai-assistant-panel" id="aiAssistant" style="display: none;">
+        <div class="assistant-header">
+            <h3>🤖 AI Assistant</h3>
+            <button class="btn btn-small" onclick="toggleAIAssistant()">×</button>
+        </div>
+        <div class="assistant-content">
+            <p>AI assistant coming soon!</p>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+        <div class="status-left">
+            <span id="lineCol">Line 1, Col 1</span>
+            <span id="fileEncoding">UTF-8</span>
+        </div>
+        <div class="status-center">
+            <span id="gitStatus">No Git repository</span>
+        </div>
+        <div class="status-right">
+            <span id="languageMode">Plain Text</span>
+            <span id="aiStatus">🤖 AI Ready</span>
+        </div>
+    </footer>
+
+    <!-- Scripts  -->
+    <script src="tauri-github-api.js"></script>
+    <script src="custom-terminal.js"></script>
+    <script src="file-system.js"></script>
+    <script src="recent-files-manager.js"></script>
+    <script src="repo-downloader.js"></script>
+    <script src="tauri-oauth-device.js"></script>
+    <script src="ide-core.js"></script>
+</body>
+</html>
